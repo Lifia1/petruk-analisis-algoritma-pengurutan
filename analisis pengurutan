@@ -1,0 +1,212 @@
+#include <iostream>
+#include <iomanip> 
+#include <vector>
+#include <algorithm>
+#include <chrono>
+#include <cstdlib>
+#include <numeric>  
+using namespace std;
+using namespace std::chrono;
+
+void printArray(const vector<int> &arr) {
+    for (int num : arr) {
+        cout << num << " ";
+    }
+    cout << endl;
+}
+
+void bubbleSort(vector<int> &arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = 0; j < n - i - 1; ++j) {
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+            }
+        }
+    }
+}
+
+void insertionSort(vector<int> &arr) {
+    int n = arr.size();
+    for (int i = 1; i < n; ++i) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            --j;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void selectionSort(vector<int> &arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; ++i) {
+        int minIndex = i;
+        for (int j = i + 1; j < n; ++j) {
+            if (arr[j] < arr[minIndex]) {
+                minIndex = j;
+            }
+        }
+        swap(arr[i], arr[minIndex]);
+    }
+}
+
+void merge(vector<int> &arr, int left, int mid, int right) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
+    vector<int> L(n1), R(n2);
+
+    for (int i = 0; i < n1; ++i) L[i] = arr[left + i];
+    for (int j = 0; j < n2; ++j) R[j] = arr[mid + 1 + j];
+
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            ++i;
+        } else {
+            arr[k] = R[j];
+            ++j;
+        }
+        ++k;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        ++i;
+        ++k;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        ++j;
+        ++k;
+    }
+}
+
+void mergeSort(vector<int> &arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+}
+
+int partition(vector<int> &arr, int low, int high) {
+    int pivot = arr[high];
+    int i = (low - 1);
+    for (int j = low; j <= high - 1; ++j) {
+        if (arr[j] < pivot) {
+            ++i;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + 1], arr[high]);
+    return (i + 1);
+}
+
+void quickSort(vector<int> &arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
+template<typename Func>
+double measureSortTime(Func sortFunction, vector<int> arr) {
+    auto start = high_resolution_clock::now();
+    sortFunction(arr);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    return duration.count();
+}
+
+vector<int> generateRandomArray(int size) {
+    vector<int> arr(size);
+    generate(arr.begin(), arr.end(), rand);
+    return arr;
+}
+
+vector<int> generateSortedArray(int size) {
+    vector<int> arr(size);
+    iota(arr.begin(), arr.end(), 0);
+    return arr;
+}
+
+vector<int> generateReversedArray(int size) {
+    vector<int> arr(size);
+    iota(arr.begin(), arr.end(), 0);
+    reverse(arr.begin(), arr.end());
+    return arr;
+}
+
+void displayResults(vector<vector<double>> &results, vector<int> &sizes, vector<string> &algorithms, string condition) {
+    int colWidth = 15;
+    cout << "Hasil Pengukuran Waktu untuk Data " << condition << ":\n";
+    cout << string(93, '-') << "\n";
+    cout << "| " << left << setw(colWidth) << "Algoritma";
+    cout << "| " << left << setw(colWidth) << "Kompleksitas Waktu";
+    for (int size : sizes) {
+        cout << "| N=" << left << setw(7) << size << " (μs) ";
+    }
+    cout << "|\n";
+    cout << string(93, '-') << "\n";
+
+    for (size_t i = 0; i < algorithms.size(); ++i) {
+        cout << "| " << left << setw(colWidth) << algorithms[i];
+        cout << "| " << left << setw(colWidth) << "O(n^2)";  
+        for (size_t j = 0; j < sizes.size(); ++j) {
+            cout << "| " << left << setw(colWidth) << results[i][j];
+        }
+        cout << "|\n";
+    }
+    cout << string(93, '-') << "\n";
+}
+
+int main() {
+    srand(time(0));
+
+    vector<int> sizes = {10, 100, 500, 1000, 10000};
+    vector<string> algorithms = {"Bubble Sort", "Insertion Sort", "Selection Sort", "Merge Sort", "Quick Sort"};
+
+    vector<vector<double>> randomResults(algorithms.size(), vector<double>(sizes.size()));
+    vector<vector<double>> sortedResults(algorithms.size(), vector<double>(sizes.size()));
+    vector<vector<double>> reversedResults(algorithms.size(), vector<double>(sizes.size()));
+
+    for (size_t i = 0; i < sizes.size(); ++i) {
+        int size = sizes[i];
+
+        vector<int> randomArray = generateRandomArray(size);
+        vector<int> sortedArray = generateSortedArray(size);
+        vector<int> reversedArray = generateReversedArray(size);
+
+        randomResults[0][i] = measureSortTime(bubbleSort, randomArray);
+        sortedResults[0][i] = measureSortTime(bubbleSort, sortedArray);
+        reversedResults[0][i] = measureSortTime(bubbleSort, reversedArray);
+
+        randomResults[1][i] = measureSortTime(insertionSort, randomArray);
+        sortedResults[1][i] = measureSortTime(insertionSort, sortedArray);
+        reversedResults[1][i] = measureSortTime(insertionSort, reversedArray);
+
+        randomResults[2][i] = measureSortTime(selectionSort, randomArray);
+        sortedResults[2][i] = measureSortTime(selectionSort, sortedArray);
+        reversedResults[2][i] = measureSortTime(selectionSort, reversedArray);
+
+        randomResults[3][i] = measureSortTime([&](vector<int> arr) { mergeSort(arr, 0, arr.size() - 1); }, randomArray);
+        sortedResults[3][i] = measureSortTime([&](vector<int> arr) { mergeSort(arr, 0, arr.size() - 1); }, sortedArray);
+        reversedResults[3][i] = measureSortTime([&](vector<int> arr) { mergeSort(arr, 0, arr.size() - 1); }, reversedArray);
+
+        randomResults[4][i] = measureSortTime([&](vector<int> arr) { quickSort(arr, 0, arr.size() - 1); }, randomArray);
+        sortedResults[4][i] = measureSortTime([&](vector<int> arr) { quickSort(arr, 0, arr.size() - 1); }, sortedArray);
+        reversedResults[4][i] = measureSortTime([&](vector<int> arr) { quickSort(arr, 0, arr.size() - 1); }, reversedArray);
+    }
+
+    displayResults(randomResults, sizes, algorithms, "Acak");
+    displayResults(sortedResults, sizes, algorithms, "Terurut");
+    displayResults(reversedResults, sizes, algorithms, "Terurut Terbalik");
+
+    return 0;
+}
