@@ -1,0 +1,53 @@
+#include <iostream>
+#include <chrono>
+#include <iomanip> 
+using namespace std;
+using namespace std::chrono;
+
+long long fibonacciRecursive(int n) {
+    if (n <= 1) return n;
+    return fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2);
+}
+
+long long fibonacciDP(int n) {
+    if (n <= 1) return n;
+    long long fib[n + 1];
+    fib[0] = 0;
+    fib[1] = 1;
+    for (int i = 2; i <= n; ++i) {
+        fib[i] = fib[i - 1] + fib[i - 2];
+    }
+    return fib[n];
+}
+
+template<typename Func>
+double measureExecutionTime(Func func, int n) {
+    auto start = high_resolution_clock::now();
+    func(n);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    return duration.count();
+}
+
+int main() {
+    int testValues[] = {10, 25, 30, 40, 50};
+    int numTests = sizeof(testValues) / sizeof(testValues[0]);
+
+    cout << left << setw(5) << "n"
+         << left << setw(20) << "Recursive (µs)"
+         << left << setw(25) << "Dynamic Programming (µs)" << "\n";
+    cout << string(50, '-') << "\n";
+
+    for (int i = 0; i < numTests; ++i) {
+        int n = testValues[i];
+
+        double recursiveTime = measureExecutionTime(fibonacciRecursive, n);
+        double dpTime = measureExecutionTime(fibonacciDP, n);
+
+        cout << left << setw(5) << n
+             << left << setw(20) << recursiveTime
+             << left << setw(25) << dpTime << "\n";
+    }
+
+    return 0;
+}
