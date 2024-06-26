@@ -143,27 +143,27 @@ vector<int> generateReversedArray(int size) {
     return arr;
 }
 
-void displayResults(vector<vector<double>> &results, vector<int> &sizes, vector<string> &algorithms, string condition) {
-    int colWidth = 15;
+void displayResults(vector<vector<double>> &results, vector<int> &sizes, vector<string> &algorithms, vector<string> &complexities, string condition) {
+    int colWidth = 20;
     cout << "Hasil Pengukuran Waktu untuk Data " << condition << ":\n";
-    cout << string(93, '-') << "\n";
+    cout << string(120, '-') << "\n";
     cout << "| " << left << setw(colWidth) << "Algoritma";
     cout << "| " << left << setw(colWidth) << "Kompleksitas Waktu";
     for (int size : sizes) {
         cout << "| N=" << left << setw(7) << size << " (μs) ";
     }
     cout << "|\n";
-    cout << string(93, '-') << "\n";
+    cout << string(120, '-') << "\n";
 
     for (size_t i = 0; i < algorithms.size(); ++i) {
         cout << "| " << left << setw(colWidth) << algorithms[i];
-        cout << "| " << left << setw(colWidth) << "O(n^2)";  
+        cout << "| " << left << setw(colWidth) << complexities[i];
         for (size_t j = 0; j < sizes.size(); ++j) {
             cout << "| " << left << setw(colWidth) << results[i][j];
         }
         cout << "|\n";
     }
-    cout << string(93, '-') << "\n";
+    cout << string(120, '-') << "\n";
 }
 
 int main() {
@@ -171,6 +171,7 @@ int main() {
 
     vector<int> sizes = {10, 100, 500, 1000, 10000};
     vector<string> algorithms = {"Bubble Sort", "Insertion Sort", "Selection Sort", "Merge Sort", "Quick Sort"};
+    vector<string> complexities = {"O(n^2)", "O(n^2)", "O(n^2)", "O(n log n)", "O(n log n)"};
 
     vector<vector<double>> randomResults(algorithms.size(), vector<double>(sizes.size()));
     vector<vector<double>> sortedResults(algorithms.size(), vector<double>(sizes.size()));
@@ -203,10 +204,10 @@ int main() {
         sortedResults[4][i] = measureSortTime([&](vector<int> arr) { quickSort(arr, 0, arr.size() - 1); }, sortedArray);
         reversedResults[4][i] = measureSortTime([&](vector<int> arr) { quickSort(arr, 0, arr.size() - 1); }, reversedArray);
     }
+displayResults(randomResults, sizes, algorithms, complexities, "Acak");
+    displayResults(sortedResults, sizes, algorithms, complexities, "Terurut");
+    displayResults(reversedResults, sizes, algorithms, complexities, "Terurut Terbalik");
 
-    displayResults(randomResults, sizes, algorithms, "Acak");
-    displayResults(sortedResults, sizes, algorithms, "Terurut");
-    displayResults(reversedResults, sizes, algorithms, "Terurut Terbalik");
 
     return 0;
 }
